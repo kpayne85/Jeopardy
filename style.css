@@ -12,13 +12,168 @@
   #74119c
 */
 
+
+.title-row.second-column {
+  transform: scale(16.66%) translate(-150%, -250%);
+}
+
+.title-row.third-column {
+  transform: scale(16.66%) translate(-50%, -250%);
+}
+
+.title-row.fourth-column {
+  transform: scale(16.66%) translate(50%, -250%);
+}
+
+.title-row.first-column {
+  transform: scale(16.66%) translate(-250%, -250%);
+}
+
+.title-row.fifth-column {
+  transform: scale(16.66%) translate(150%, -250%);
+}
+
+.title-row.sixth-column {
+  transform: scale(16.66%) translate(250%, -250%);
+}
+
+
+.first-row.first-column {
+  transform: scale(16.66%) translate(-250%, -150%);
+}
+
+.first-row.second-column {
+  transform: scale(16.66%) translate(-150%, -150%);
+}
+
+.first-row.third-column {
+  transform: scale(16.66%) translate(-50%, -150%);
+}
+
+.first-row.fourth-column {
+  transform: scale(16.66%) translate(50%, -150%);
+}
+
+.first-row.fifth-column {
+  transform: scale(16.66%) translate(150%, -150%);
+}
+
+.first-row.sixth-column {
+  transform: scale(16.66%) translate(250%, -150%);
+}
+
+.second-row.first-column {
+  transform: scale(16.66%) translate(-250%, -50%);
+}
+
+.second-row.second-column {
+  transform: scale(16.66%) translate(-150%, -50%);
+}
+
+.second-row.third-column {
+  transform: scale(16.66%) translate(-50%, -50%);
+}
+
+.second-row.fourth-column {
+  transform: scale(16.66%) translate(50%, -50%);
+}
+
+.second-row.fifth-column {
+  transform: scale(16.66%) translate(150%, -50%);
+}
+
+.second-row.sixth-column {
+  transform: scale(16.66%) translate(250%, -50%);
+}
+
+.third-row.first-column {
+  transform: scale(16.66%) translate(-250%, 50%);
+}
+
+.third-row.second-column {
+  transform: scale(16.66%) translate(-150%, 50%);
+}
+
+.third-row.third-column {
+  transform: scale(16.66%) translate(-50%, 50%);
+}
+
+.third-row.fourth-column {
+  transform: scale(16.66%) translate(50%, 50%);
+}
+
+.third-row.fifth-column {
+  transform: scale(16.66%) translate(150%, 50%);
+}
+
+.third-row.sixth-column {
+  transform: scale(16.66%) translate(250%, 50%);
+}
+
+.fourth-row.first-column {
+  transform: scale(16.66%) translate(-250%, 150%);
+}
+
+.fourth-row.second-column {
+  transform: scale(16.66%) translate(-150%, 150%);
+}
+
+.fourth-row.third-column {
+  transform: scale(16.66%) translate(-50%, 150%);
+}
+
+.fourth-row.fourth-column {
+  transform: scale(16.66%) translate(50%, 150%);
+}
+
+.fourth-row.fifth-column {
+  transform: scale(16.66%) translate(150%, 150%);
+}
+
+.fourth-row.sixth-column {
+  transform: scale(16.66%) translate(250%, 150%);
+}
+
+.fifth-row.first-column {
+  transform: scale(16.66%) translate(-250%, 250%);
+}
+
+.fifth-row.second-column {
+  transform: scale(16.66%) translate(-150%, 250%);
+}
+
+.fifth-row.third-column {
+  transform: scale(16.66%) translate(-50%, 250%);
+}
+
+.fifth-row.fourth-column {
+  transform: scale(16.66%) translate(50%, 250%);
+}
+
+.fifth-row.fifth-column {
+  transform: scale(16.66%) translate(150%, 250%);
+}
+
+.fifth-row.sixth-column {
+  transform: scale(16.66%) translate(250%, 250%);
+}
+
+
+
+
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
   color: white;
-  text-shadow: .2vw .2vw .2vw black;
+  text-shadow:
+    .2vw .2vw .2vw black,
+    1px 0 black,
+    0 1px black,
+    -1px 0 black,
+    0 -1px black;
   font-family: monospace;
+  font-weight: 900;
 }
 
 .disabled {
@@ -49,6 +204,7 @@ p {
   justify-content: center;
   padding: 1vh;
   background: #9eaeff;
+  perspective: 1000px;
 }
 
 #start-window {
@@ -115,4 +271,68 @@ p {
   max-height: max-content;
 
 
+}
+
+.question {
+  background-color: transparent;
+  width: 90%;
+  height: 90%;
+  border: 1px solid #f1f1f1;
+  /* perspective: 1000px; */
+}
+
+.question-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  top: 0px;
+  left: 0px;
+  transition-property: transform;
+  transition-duration: .5s;
+  transition-delay: 0s;
+  transform-style: preserve-3d;
+}
+
+.question:hover .question-inner {
+  transform: rotateY(180deg);
+}
+
+.question-front,
+.question-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  color: gold;
+  background-color: blue;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-direction: column;
+}
+
+.question-front {
+  background-color: blue;
+  border: 10px solid black;
+  border-radius: 2vw;
+}
+
+.question-front p {
+  color: gold;
+  font-size: 15vw;
+}
+
+.question-back {
+  background-color: blue;
+  transform: rotateY(180deg);
+  border: 10px ridge gold;
+  border-radius: 2vw;
+}
+
+.question-back p {
+  color: gold;
+  font-size: 3vw;
+  height: 80%;
 }

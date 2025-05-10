@@ -13,7 +13,16 @@ function CEBTFactory() {
     * styles: [{prop: String, val: String}],}} propObj 
     * @returns 
     */
-    const CEBT = function ({ type, text, id, classList, appTarget, appRelation, actions, styles }) {
+    const CEBT = function ({
+        type,
+        text,
+        id,
+        classList,
+        appTarget,
+        appRelation,
+        actions,
+        styles
+    }) {
 
         //type, text, append, actions
         if (type) {
@@ -22,9 +31,12 @@ function CEBTFactory() {
             if (actions) {
                 actions.forEach((a) => {
                     ele.addEventListener(a.event, function (e) {
-                        if (e.target === ele && e.type === a.event) {
-                            a.func(e, a.target);
-                        }
+                        e.preventDefault();
+                        console.log(e);
+                        a.func(e);
+                        // if (e.type === a.event && ele === e.target) {
+                        //     a.func(e, ele);
+                        // }
                     });
                 })
             }

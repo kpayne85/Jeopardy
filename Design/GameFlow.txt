@@ -1,0 +1,14 @@
+1 Player lands on start page.
+2 Host explains game
+3 Host introduces players
+4 game loop
+5 player chooses question
+6 players buzz in if they think they know the answer
+7 if they answer question correctly 
+7.1 add the value of the question to the players total
+7.2 set the player to the question chooser
+7.3 go to step 5
+8 if they answer incorrectly
+8.1 subtract the value of the question from the players total
+8.2 resume question timer and go to step 6
+9 if no correct answer go to step 5
