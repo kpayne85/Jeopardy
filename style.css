@@ -274,6 +274,7 @@ p {
 }
 
 .question {
+  position: absolute;
   background-color: transparent;
   width: 90%;
   height: 90%;
@@ -292,10 +293,12 @@ p {
   transition-duration: .5s;
   transition-delay: 0s;
   transform-style: preserve-3d;
+  z-index: 1;
 }
 
-.question:hover .question-inner {
+.question.active .question-inner {
   transform: rotateY(180deg);
+  z-index: 2;
 }
 
 .question-front,
