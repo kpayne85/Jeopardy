@@ -12,3 +12,37 @@
 8.1 subtract the value of the question from the players total
 8.2 resume question timer and go to step 6
 9 if no correct answer go to step 5
+
+
+
+gameboard: stores and modifies state of gameboard
+
+host:
+    Asks for a new gameboard to start game
+    Knows the gamestate
+    passes message to chat to ask appropriate contestant which question
+    listens to chat for response
+    passes messages to chat to read prompt
+    starts timer
+    listens for buzzer
+    acknowlages who buzzed in first
+    appropriate contestant answers
+    passes message correct or not
+    asks for next question or waits for more buzz-ins
+
+chat:
+    host and contestants post messages to chat
+    chat creates events for host and contestants to listen to
+
+buzzer:
+    has timer to answer question
+    listens for contestants to buzz in
+    passes buzz in and/or timeout to host
+
+player:
+    chooses questions
+    answers questions
+    changes points
+    reads gameboard
+    buzzes in
+    

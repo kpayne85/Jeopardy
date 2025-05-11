@@ -1,24 +1,12 @@
-const questionBuilder = questionFactory();
-class question {
+class catTitle {
     constructor(parent) {
-        this.questionRoot = questionBuilder(parent);
-        this.valueLink = this.questionRoot
-            .children[0].children[0].children[0];
-        this.promptLink = this.questionRoot
-            .children[0].children[1].children[0].children[0];
-        this.innerLink = this.questionRoot.children[0];
+        this.root = titleBuilder(parent);
+        this.innerLink = this.root.children[0];
+
+
     }
-    setValue(val) {
-        this.value = val;
-        this.valueLink.innerText = `$${val}`;
-        return this;
-    }
-    setPrompt(prompt) {
-        this.promptLink.innerText = prompt;
-        return this;
-    }
-    setAnswer(ans) {
-        this.answer = ans;
+    setTitle(title) {
+        this.innerLink.children[0].innerText = title;
         return this;
     }
     setPosition({ column = 1, row = 0 }) {
@@ -78,18 +66,5 @@ class question {
 
         return this;
 
-    }
-
-    setActivity(bool) {
-        if (bool) {
-            this.questionRoot.classList.add("active");
-        } else {
-            this.questionRoot.classList.remove("active");
-        }
-        return this;
-    }
-
-    attempt() {
-        this.valueLink.classList.add("attempted");
     }
 }

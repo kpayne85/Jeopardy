@@ -182,3 +182,33 @@ function gameBoardFactory() {
 start game board
 ================================================================================
 */
+
+
+/*
+================================================================================
+start title
+================================================================================
+*/
+
+function titleBuilder(parent) {
+    const outerElem = {
+        type: 'div',
+        classList: 'question',
+
+    };
+    const innerElem = {
+        type: 'div',
+        classList: 'title-element',
+    };
+
+    const titleText = {
+        type: 'h2',
+        classList: 'title-text',
+    };
+    const template = new forrest(outerElem);
+    template.addChild(innerElem);
+    template.children[0].addChild(titleText);
+
+    return builder(template, parent);
+
+}
