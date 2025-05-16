@@ -20,6 +20,8 @@ const app = gameArea(document.querySelector('body'));
 addAutoResizer(app);
 // const start = startpage(app);
 // document.querySelector("#start-submit").type = "submit";
+const g = new game(app);
+
 
 // const testQuestion = new question(app);
 // testQuestion
