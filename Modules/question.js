@@ -15,6 +15,7 @@ class question {
     }
     setPrompt(prompt) {
         this.promptLink.innerText = prompt;
+        this.prompt = prompt;
         return this;
     }
     setAnswer(ans) {

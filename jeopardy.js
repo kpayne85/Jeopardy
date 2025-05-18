@@ -15,12 +15,43 @@ function addAutoResizer(element) {
 const gameArea = gameAreaFactory();
 const startpage = startPageFactory();
 
+function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed to load image at ${url}`));
+    });
+}
+
+async function preloadAllImages(imagesArray) {
+    const promises = imagesArray.map(preloadImage);
+    try {
+        await Promise.all(promises);
+        console.log("All images preloaded successfully");
+    } catch (error) {
+        console.error("Error preloading images:", error);
+    }
+}
+
+const imagesToPreload = [
+    "./media/images/host/default.png"
+
+];
+
+preloadAllImages(imagesToPreload);
+const img = new Image();
+img.src = "./media/images/host/default.png";
+
 
 const app = gameArea(document.querySelector('body'));
 addAutoResizer(app);
 // const start = startpage(app);
 // document.querySelector("#start-submit").type = "submit";
 const g = new game(app);
+
+
+
 
 
 // const testQuestion = new question(app);

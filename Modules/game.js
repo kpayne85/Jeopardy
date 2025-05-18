@@ -7,6 +7,9 @@ class game {
         this.chatHook = this.root.children[0].children[1].children[1];
         this.gameChat = new chat(this.chatHook);
         this.root.addEventListener('chatPost', this);
+        this.root.addEventListener('click', this);
+        this.hostHook = document.getElementById("host-hook");
+        this.gameHost = new host(this.hostHook, this.gameChat, this.gameBoard);
     }
 
     #getLayout() {
@@ -78,7 +81,31 @@ class game {
 
     handleEvent(e) {
         if (e.type === 'chatPost') {
-            console.log(e);
+            this.chatPostEvent(e);
         }
+        if (e.type === 'click') {
+            //get the question value
+            const val = e.target.firstElementChild.innerText;
+            //get the catagory
+            console.log(e.target.parentElement.parentElement)
+            let titlecard = e.target.parentElement.parentElement;
+            console.log(titlecard);
+            for (let i = 0; i < 6; i++) {
+                titlecard = titlecard.previousElementSibling;
+                if (titlecard.firstElementChild.classList.contains("title-element")) break;
+
+            }
+            const cat = titlecard.firstElementChild.firstElementChild.innerText;
+            //Post the message
+            const phrase = `I would like ${cat} for ${val}, please.`;
+            this.gameChat.post({ who: 'player', said: phrase });
+            this.gameChat.input.focus();
+
+        }
+    }
+
+    chatPostEvent(e) {
+        this.gameHost.chatPostEvent(e);
+
     }
 }

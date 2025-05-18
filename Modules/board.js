@@ -67,6 +67,11 @@ class board {
         this.#workingCat.setState({ value: this.#workingVal, state: "Active" });
     }
 
+    isAvailable({ catagory, value }) {
+        const workingCat = this.catagories.get(catagory);
+        return workingCat.isAvailable(value);
+    }
+
     finishQuestion() {
         this.#workingCat.setState({ value: this.#workingVal, state: "Attempted" });
     }

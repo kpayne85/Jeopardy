@@ -36,11 +36,17 @@ class catagory {
     setState({ value, state }) {
         if (state === "Active") {
             this.data.get(value).setActivity(true);
-            this.questionState.set(200, state);
+            this.questionState.set(value, state);
         }
         if (state === "Attempted") {
             this.data.get(value).setActivity(false).attempt();
-            this.questionState.set(200, state);
+            this.questionState.set(value, state);
         }
+    }
+
+    isAvailable(value) {
+        const state = this.questionState.get(Number.parseInt(value));
+        if (state === "Available") return true;
+        return false;
     }
 }

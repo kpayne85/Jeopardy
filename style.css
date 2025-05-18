@@ -341,10 +341,12 @@ h2.title-text {
   background-color: transparent;
   width: 100%;
   height: 100%;
+  pointer-events: none;
   /* perspective: 1000px; */
 }
 
 .question-inner {
+  pointer-events: all;
   position: relative;
   width: 100%;
   height: 100%;
@@ -406,7 +408,12 @@ h2.title-text {
   visibility: hidden;
 }
 
+.question-value {
+  pointer-events: none;
+}
+
 .title-element {
+  pointer-events: none;
   position: relative;
   width: 100%;
   height: 100%;
@@ -455,4 +462,14 @@ h2.title-text {
   border: none;
   font-size: 1.2vw;
 
+}
+
+#host-root {
+  width: 100%;
+  height: 100%;
+}
+
+#display-pic {
+
+  height: 100%;
 }
