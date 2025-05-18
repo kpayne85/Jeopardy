@@ -6,6 +6,7 @@ class game {
         this.gameBoard = new board(this.boardHook, 'test');
         this.chatHook = this.root.children[0].children[1].children[1];
         this.gameChat = new chat(this.chatHook);
+        this.root.addEventListener('chatPost', this);
     }
 
     #getLayout() {
@@ -73,5 +74,11 @@ class game {
 
     #buildLayout() {
         return builder(this.#getLayout(), this.parent);
+    }
+
+    handleEvent(e) {
+        if (e.type === 'chatPost') {
+            console.log(e);
+        }
     }
 }

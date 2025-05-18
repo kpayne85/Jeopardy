@@ -31,6 +31,7 @@ class chat {
 
     #setupInput() {
         this.input.addEventListener('keyup', this);
+        this.input.placeholder = "Say: ";
     }
 
     handleEvent(e) {
@@ -49,6 +50,8 @@ class chat {
     }
 
     post({ who, said }) {
+
+        const postEvent = new CustomEvent('chatPost', { detail: { who, said }, bubbles: true })
         //TODO: send message posted event
         const post = `${who}: ${said}`;
         if (this.history.innerText !== "") {
@@ -56,6 +59,8 @@ class chat {
         }
         this.history.innerText = this.history.innerText + post;
         this.history.scrollTop = this.history.scrollHeight;
+
+        this.history.dispatchEvent(postEvent);
 
     }
 }
