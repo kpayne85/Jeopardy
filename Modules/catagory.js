@@ -12,6 +12,7 @@ class catagory {
         titleElem.setTitle(title)
             .setPosition({ column: this.column, row: 0 });
         this.data.set("Title", titleElem);
+        this.title = title;
         return this;
     }
     setDoubleJeopardy(bool) {
@@ -25,7 +26,7 @@ class catagory {
                 questionNum * 400 : questionNum * 200;
             this.data.set(value, new question(this.appendPoint));
             this.data.get(value)
-                .setValue(value)
+                .setValue(value, this.title)
                 .setPrompt(prompt)
                 .setAnswer(answer)
                 .setPosition({ column: this.column, row: questionNum });

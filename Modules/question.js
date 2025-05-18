@@ -8,9 +8,10 @@ class question {
             .children[0].children[1].children[0].children[0];
         this.innerLink = this.questionRoot.children[0];
     }
-    setValue(val) {
+    setValue(val, catagory) {
         this.value = val;
         this.valueLink.innerText = `$${val}`;
+        this.valueLink.setAttribute("data-catagory", catagory);
         return this;
     }
     setPrompt(prompt) {

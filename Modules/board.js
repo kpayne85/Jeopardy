@@ -50,11 +50,11 @@ class board {
             const testConstructor = {
                 title: "Test Title".concat(` ${i}`),
                 questionArr: [
-                    { prompt: "What is 1 + 1", answer: 2 },
-                    { prompt: "What is 1 + 1", answer: 2 },
-                    { prompt: "What is 1 + 1", answer: 2 },
-                    { prompt: "What is 1 + 1", answer: 2 },
-                    { prompt: "What is 1 + 1", answer: 2 },
+                    { prompt: "The answer to 1 + 1", answer: 2 },
+                    { prompt: "The answer to 1 + 1", answer: 2 },
+                    { prompt: "The answer to 1 + 1", answer: 2 },
+                    { prompt: "The answer to 1 + 1", answer: 2 },
+                    { prompt: "The answer to 1 + 1", answer: 2 },
                 ],
             };
             this.addCatagory(testConstructor);

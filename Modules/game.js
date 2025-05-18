@@ -84,22 +84,16 @@ class game {
             this.chatPostEvent(e);
         }
         if (e.type === 'click') {
-            //get the question value
-            const val = e.target.firstElementChild.innerText;
-            //get the catagory
-            console.log(e.target.parentElement.parentElement)
-            let titlecard = e.target.parentElement.parentElement;
-            console.log(titlecard);
-            for (let i = 0; i < 6; i++) {
-                titlecard = titlecard.previousElementSibling;
-                if (titlecard.firstElementChild.classList.contains("title-element")) break;
-
+            //make sure its a question
+            if (e.target.classList.contains("question-front")) {
+                //get the question value
+                const val = e.target.firstElementChild.innerText;
+                //get the catagory
+                const cat = e.target.firstElementChild.getAttribute('data-catagory');
+                const phrase = `I would like ${cat} for ${val}, please.`;
+                this.gameChat.post({ who: 'player', said: phrase });
+                this.gameChat.input.focus();
             }
-            const cat = titlecard.firstElementChild.firstElementChild.innerText;
-            //Post the message
-            const phrase = `I would like ${cat} for ${val}, please.`;
-            this.gameChat.post({ who: 'player', said: phrase });
-            this.gameChat.input.focus();
 
         }
     }
