@@ -18,17 +18,17 @@ function builder(template, parent) {
 Game Area
 ================================================================================
 */
-function gameAreaFactory() {
-    const gameArea = {
-        type: 'div',
-        id: 'app',
-    };
-    const template = new forrest(gameArea);
-    const gameAreaBuilder = function (parent) {
-        return builder(template, parent);
-    }
-    return gameAreaBuilder;
-}
+// function gameAreaFactory() {
+//     const gameArea = {
+//         type: 'div',
+//         id: 'app',
+//     };
+//     const template = new forrest(gameArea);
+//     const gameAreaBuilder = function (parent) {
+//         return builder(template, parent);
+//     }
+//     return gameAreaBuilder;
+// }
 
 /*
 ================================================================================

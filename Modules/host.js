@@ -9,12 +9,15 @@ class host {
         this.displayPic = document.getElementById('display-pic');
         this.displayPic.src = img.src;
         this.gameboard = gameboard;
-        this.cataRegexes = this.#setCatagoryRegexes();
+    }
+
+    boardReady() {
+        this.cataRegexes = this.setCatagoryRegexes();
         this.gamestate = {
             currentTurn: "player",
             awaitingAction: "choose question",
         };
-
+        this.#say("Welcome! Please choose a question.");
     }
 
     #inputOnChooseQuestion(userInput) {
@@ -146,7 +149,7 @@ class host {
         this.gamestate.awaitingAction = 'awaiting answer';
     }
 
-    #setCatagoryRegexes() {
+    setCatagoryRegexes() {
         const m = new Map();
         const titles = document.getElementsByClassName('title-element');
         const titlesArr = [...titles];

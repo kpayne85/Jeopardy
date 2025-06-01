@@ -51,8 +51,8 @@ class chat {
 
     post({ who, said }) {
 
-        const postEvent = new CustomEvent('chatPost', { detail: { who, said }, bubbles: true })
-        //TODO: send message posted event
+        const postEvent = new CustomEvent('chatPost', { detail: { who, said }, bubbles: true });
+
         const post = `${who}: ${said}`;
         if (this.history.innerText !== "") {
             this.history.innerText = this.history.innerText + "\n";

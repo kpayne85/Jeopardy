@@ -1,6 +1,7 @@
 class board {
     #workingCat;
     #workingVal;
+    #catagories = [];
     constructor(parent, type) {
         this.catagories = new Map();
         this.root = createElementBT({
@@ -11,9 +12,11 @@ class board {
         switch (type) {
             case "Jeopardy":
                 this.dblJeopardy = false;
+                this.makeBoard();
                 break;
             case "Double Jeopardy":
                 this.dblJeopardy = true;
+                this.makeBoard();
                 break;
             case "test":
                 this.makeTest();
@@ -43,6 +46,67 @@ class board {
         });
         this.catagories.set(catagoryConstructorObj.title, newCatagory);
 
+    }
+
+    async makeBoard() {
+        //make sure we have catagories to choose from
+        await this.#getCatagories();
+        //make the board
+
+        Promise.all([
+            this.makeCatagory(),
+            this.makeCatagory(),
+            this.makeCatagory(),
+            this.makeCatagory(),
+            this.makeCatagory(),
+            this.makeCatagory(),
+        ]).then(() => {
+            //tell everyone that the board is ready.
+            const boardReadyEvent = new CustomEvent('boardReady', { detail: "Pop!", bubbles: true });
+            this.root.dispatchEvent(boardReadyEvent);
+        });
+
+
+
+
+    }
+
+    async makeCatagory() {
+        //choose a random catagory
+        const randCatIdx = Math.floor((Math.random() * this.#catagories.length));
+        const randCat = this.#catagories.splice(randCatIdx, 1)[0];
+        //get questions for catagory
+        const questions = await this.#getQuestions(randCat.id);
+        //construct template
+        const catConstruct = {
+            title: randCat.title,
+            questionArr: [
+                { prompt: questions[0].question, answer: questions[0].answer },
+                { prompt: questions[1].question, answer: questions[1].answer },
+                { prompt: questions[2].question, answer: questions[2].answer },
+                { prompt: questions[3].question, answer: questions[3].answer },
+                { prompt: questions[4].question, answer: questions[4].answer },
+            ],
+        };
+        //add catagory by template
+        this.addCatagory(catConstruct);
+    }
+
+    async #getCatagories() {
+        if (this.#catagories.length === 0) {
+            const getString =
+                `https://rithm-jeopardy.herokuapp.com/api/categories?count=100`;
+            const res = await axios.get(getString);
+            this.#catagories = [...res.data];
+        }
+    }
+
+    async #getQuestions(id) {
+        const getString =
+            `https://rithm-jeopardy.herokuapp.com/api/category?id=${id}`;
+
+        const res = await axios.get(getString);
+        return [...res.data.clues];
     }
 
     makeTest() {
