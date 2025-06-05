@@ -44,6 +44,16 @@ class timer {
     }
 }
 
+class gameState {
+    constructor() { }
+    change(properties) {
+        for (let key in properties) {
+            this[key] = properties[key];
+        }
+        const e = new CustomEvent('gameUpdate');
+        globalThis.dispatchEvent(e);
+    }
+}
 class gameArea extends abstractElemCollection {
     constructor() {
         super();
@@ -722,9 +732,9 @@ class game extends abstractElemCollection {
 
             super.build();
             this.appendAsChildOf(this.parent);
-            const gb = new board();
-            gb.setDoubleJeopardy(false);
-            gb.build();
+            this.gb = new board();
+            this.gb.setDoubleJeopardy(false);
+            this.gb.build();
             resolve(true);
         });
 
@@ -738,29 +748,29 @@ class game extends abstractElemCollection {
     }
 
     finishBuild() {
-        new chat().build();
+        const gameChat = new chat().build();
         //     const gameHost = new host(hostHook);
         const orderChooser = ["Player 1", "Player 2", "Player 3"];
         const getHook = this.playerChooser(orderChooser);
-        const human = new humanPlayer(getHook);
+        const human = new humanPlayer(/*getHook*/contestantOneHook);
         human.setName("Keaton")
             .build()
             .setPictureSource("");
-        const bot1Hook = this.playerChooser(orderChooser);
-        const bot1 = new computerPlayer(bot1Hook);
-        bot1.setName("Mr. Roboto")
-            .build()
-            .setPictureSource("")
-            .setAttributes({ dex: 10, int: 10, wis: 10, con: 10 });
-        const bot2Hook = this.playerChooser(orderChooser);
-        const bot2 = new computerPlayer(bot2Hook);
-        bot2.setName("Calculon")
-            .build()
-            .setPictureSource("")
-            .setAttributes({ dex: 10, int: 10, wis: 10, con: 10 });
-        new host().build();
+        // const bot1Hook = this.playerChooser(orderChooser);
+        // const bot1 = new computerPlayer(bot1Hook);
+        // bot1.setName("Mr. Roboto")
+        //     .build()
+        //     .setPictureSource("")
+        //     .setAttributes({ dex: 10, int: 10, wis: 10, con: 10 });
+        // const bot2Hook = this.playerChooser(orderChooser);
+        // const bot2 = new computerPlayer(bot2Hook);
+        // bot2.setName("Calculon")
+        //     .build()
+        //     .setPictureSource("")
+        //     .setAttributes({ dex: 10, int: 10, wis: 10, con: 10 });
+        const gameHost = new host().build();
 
-
+        gs.change({ gameChat, human, gameHost, gameBoard: this.gb });
         this.boardReady();
     }
 
