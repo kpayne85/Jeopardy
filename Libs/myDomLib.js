@@ -78,13 +78,9 @@ class abstractElemCollection extends elemConstructor {
         eventTarget: target,
         eventFunction: func }) {
 
-
         target.addEventListener(type, (e) => func(e, type, target));
-        if (this.properties) {
-            console.log(`${this.properties.name} added event listener ${type}`);
-        }
-        return this;
 
+        return this;
     }
 
     /**
@@ -113,10 +109,6 @@ class abstractElemCollection extends elemConstructor {
             enumerable: false,
             configurable: false,
         });
-
-        if (this.property) {
-            console.log(`${this.property.name}`)
-        }
         return this;
     }
 

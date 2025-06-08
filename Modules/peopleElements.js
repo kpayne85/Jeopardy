@@ -5,21 +5,27 @@ class abstractPerson extends abstractElemCollection {
         }
         super();
         this.properties = {};
-        this.personMap = new Map();
-        this.gameState = {};
-
     }
     setName(name) {
         this.properties.name = name;
-    }
-
-    buildPersonMap(e) {
-        const { name, ...rest } = e.detail;
-        this.personMap.set(name, rest);
+        return this;
     }
 
     conversationListener(e) {
+        const { name } = { ...this.properties };
+        if (e.detail.who !== name) {
+            const lettersPerSecond = 21;
+            const additionalTime = 1;
+            const promptLength = e.detail.said.length;
+            const timeToListen = Math.floor(((promptLength / lettersPerSecond)
+                + additionalTime) * 1000) + 80;
+            const listenTimer = new timer((e) => { this.heard(e); }, timeToListen, e);
+
+            listenTimer.start();
+        }
     }
+
+    heard(e) { }
 
     utter(utterance) {
         const u = {
@@ -33,14 +39,17 @@ class abstractPerson extends abstractElemCollection {
      * @returns Array of strings that contain catagories with at least one active Question.
      */
     availableCatagories() {
-        const catArr = [...this.availcat.values()];
+        // const catArr = [...this.availcat.values()];
+
+
+        const catArr = [...gs.gameBoard.catagories.values()];
         const isAvail = catArr.map((c) => {
             const qs = [...c.questionState.values()];
             return qs.includes('Available');
         });
-        const catTitles = [...this.availcat.keys()];
-
-        const availCata = catTitles.map((v, i) => {
+        // const catTitles = [...this.availcat.keys()];
+        const catTitles = [...gs.gameBoard.catagories.keys()];
+        const availCata = catTitles.filter((v, i) => {
             const avail = isAvail[i];
             if (avail) {
                 return v;
@@ -54,9 +63,10 @@ class abstractPerson extends abstractElemCollection {
      * @returns An Array of values for available Questions.
      */
     availValues(catName) {
-        const workingCat = this.availcat.get(catName);
+        // const workingCat = this.availcat.get(catName);
+        const workingCat = gs.gameBoard.catagories.get(catName);
         const vals = [...workingCat.questionState.keys()];
-        const availVals = vals.map((v) => {
+        const availVals = vals.filter((v) => {
             const a = workingCat.isAvailable(v);
             if (a) {
                 return v;
@@ -72,13 +82,6 @@ class abstractPerson extends abstractElemCollection {
         // for each event you want your collection to handle,
         // make an event handler object
 
-        const introduction = {
-            eventType: 'introduce',
-            eventTarget: globalThis.document,
-            eventFunction: (event, type, target) => {
-                this.buildPersonMap(event);
-            },
-        };
         const listen = {
             eventType: 'chat',
             eventTarget: globalThis.document,
@@ -87,74 +90,37 @@ class abstractPerson extends abstractElemCollection {
             },
         };
         const gameUpdate = {
-            eventType: 'updateGameState',
-            eventTarget: globalThis.document,
-            eventFunction: (event, type, target) => {
-                this.gameStateUpdated(event.detail);
+            eventType: 'gameUpdate',
+            eventTarget: globalThis,
+            eventFunction: () => {
+                this.gameStateUpdated();
             },
         };
-        const updateCat = {
-            eventType: 'availableCatagories',
-            eventTarget: globalThis.document,
-            eventFunction: (event, type, target) => {
-                this.availcat = event.detail.data;
-            },
-        };
-
 
         // pass your event handler object to add event
 
-        this.addEvent(introduction);
         this.addEvent(listen);
         this.addEvent(gameUpdate);
-        this.addEvent(updateCat);
 
     }
-    gameStateUpdated(gameStateObj) {
-        for (let key in gameStateObj) {
-            this.gameState[key] = gameStateObj[key];
-        }
-        switch (this.gameState.state) {
-            case 'introductions':
-                this.intoduceSelf(this.properties);
-                break;
-            default:
+    gameStateUpdated() {
 
-        }
     }
 
     actionConstructor() {
 
         //make action constructor object
 
-        const introduceSelf = {
-            fnName: "intoduceSelf",
-            sender: globalThis.document,
-            type: "introduce",
-
-            //inside options.detail you can pass your custom information
-            //and will be the variable required when you call the function.
-            dataObj: {},
-        };
         const say = {
             fnName: "say",
             sender: this.elem,
             type: "chat",
             dataObj: {},
         };
-        const checkCat = {
-            fnName: "checkCat",
-            sender: globalThis.document,
-            type: 'checkAvailableCatagories',
-            dataObj: {},
-        };
 
         //add your custom event
 
-        this.addAction(introduceSelf);
         this.addAction(say);
-        this.addAction(checkCat);
-
     }
 
     constructorTemplate() {
@@ -166,59 +132,55 @@ class host extends abstractPerson {
     constructor() {
         super();
         this.properties.role = "Host";
+        this.setName("Alex");
 
     }
 
     build() {
-        this.setName("Alex");
         super.build(hostHook);
         this.readingTimer = new timer(
-            this.gameUpdate,
+            (x) => { gs.change(x); },
             0,
             { state: 'awaiting buzzer' }
         );
         this.buzzerTimer = new timer(
-            this.gameUpdate,
+            (x) => { gs.change(x); },
             5000,
             { state: 'buzzer expired' }
         );
         this.answerTimer = new timer(
-            this.gameUpdate,
+            (x) => { gs.change(x); },
             15000,
             { state: 'resume buzzin' }
         );
+        displayPic.src = "./media/images/AlexTrebek.png";
+        return this;
     }
 
-    conversationListener(e) {
-        const { who, said } = e.detail;
-        if (who !== this.properties.name) {
-            setTimeout(() => {
-                // const { role, score, player } = this.personMap.get(who);
-                const { state, chooser, from } = { ...this.gameState };
-                switch (state) {
-                    case 'awaitingChoice':
-                        if (who !== chooser) {
-                            this.utter(`I am sorry, ${who}, it is not your turn.`);
-                        } else {
-                            this.gs2(said);
-                        }
-                        break;
-                    case 'awaiting answer':
-                        if (who !== from) {
-                            this.utter(`I am sorry, ${who}, is answeing right now.`);
-                        } else {
-                            this.gs5(said);
-                        }
-                        break;
-                    default:
-                }
 
-            }, 200);
+    heard(e) {
+        const me = gs.gameHost.properties.name;
+        const { who, said } = e.detail;
+        const { state, chooser, from } = { ...gs };
+        switch (state) {
+            case 'awaitingChoice':
+                if (who !== chooser) {
+                    this.utter(`I am sorry, ${who}, it is not your turn.`);
+                } else {
+                    this.gs2(said);
+                }
+                break;
+            case 'awaiting answer':
+                if (who !== from) {
+                    this.utter(`I am sorry, ${who}, is answeing right now.`);
+                } else {
+                    this.gs5(said);
+                }
+                break;
+            default:
         }
     }
-    buildPersonMap(e) {
-        super.buildPersonMap(e);
-    }
+
 
     eventConstructor() {
         super.eventConstructor();
@@ -234,13 +196,11 @@ class host extends abstractPerson {
             eventType: 'buzzer',
             eventTarget: globalThis.document,
             eventFunction: (event, type, target) => {
-                if (this.gameState.state === 'awaiting buzzer') {
-                    this.gameUpdate({
+                if (gs.state === 'awaiting buzzer') {
+                    gs.change({
                         state: 'awaiting answer',
                         from: event.detail.who
                     });
-                    const activeCat = this.availcat.get(this.gameState.catagory);
-                    activeCat.canBuzz(this.gameState.value, false);
                 }
             },
         };
@@ -250,15 +210,6 @@ class host extends abstractPerson {
     actionConstructor() {
         super.actionConstructor();
 
-        const updateGameState = {
-            fnName: "gameUpdate",
-            sender: globalThis.document,
-            type: "updateGameState",
-
-            //inside options.detail you can pass your custom information
-            //and will be the variable required when you call the function.
-            dataObj: {},
-        };
         const scoreChange = {
             fnName: "scoreChange",
             sender: globalThis.document,
@@ -268,7 +219,6 @@ class host extends abstractPerson {
             //and will be the variable required when you call the function.
             dataObj: {},
         };
-        this.addAction(updateGameState);
         this.addAction(scoreChange);
     }
 
@@ -289,12 +239,13 @@ class host extends abstractPerson {
         return template;
     }
 
-    gameStateUpdated(gameStateObj) {
-        super.gameStateUpdated(gameStateObj);
-        this.checkCat();
-        switch (this.gameState.state) {
+    gameStateUpdated() {
+        switch (gs.state) {
             case 'question chosen':
                 this.gs3();
+                break;
+            case 'end game':
+                this.gs0();
                 break;
             case 'awaiting buzzer':
                 this.gs4();
@@ -306,13 +257,15 @@ class host extends abstractPerson {
                 this.gs1();
                 break;
             case 'awaiting answer':
+                this.utter(`${gs.from}?`);
+                gs.gameBoard.buzzable(false);
                 this.buzzerTimer.pause();
                 this.answerTimer.start();
                 break;
             case 'resume buzzin':
                 this.scoreChange({
-                    who: this.gameState.from,
-                    value: -this.gameState.value,
+                    who: gs.from,
+                    value: -gs.value,
                 });
                 this.gs4();
                 break;
@@ -333,18 +286,17 @@ class host extends abstractPerson {
     }
 
     startGame() {
-        this.gameUpdate({ state: "introductions" });
         const script1 = "Welcome to Jeopardy!";
         this.read(script1, () => {
             const script2 = "Use your space bar as your buzzer, and type in any answers to the prompts. Remember to give your answers in the form of a question!";
             this.read(script2, () => {
                 let p1;
-                for (let key of this.personMap.keys()) {
-                    const val = this.personMap.get(key);
+                for (let key of gs.people.keys()) {
+                    const val = gs.people.get(key);
                     if (val.player === "Player 1") p1 = key;
                 }
                 const script2 = ` When the game started, ${p1} was selected as the first player to choose a question.`;
-                this.read(script2, this.gameUpdate,
+                this.read(script2, (x) => { gs.change(x); },
                     {
                         state: "top of the round",
                         chooser: p1,
@@ -353,11 +305,26 @@ class host extends abstractPerson {
             });
         });
     }
+    gs0() {
+        let highestScore = 0;
+        let winner;
+        for (let person in gs.people) {
+            if (person.properties.score > highestScore) {
+                winner = person.properties.name;
+                highestScore = person.properties.score;
+            }
+        }
+        const script = `Congradulations to ${winner}, who has won the game with a score of $${score}.`;
+        this.read(script);
+    }
+
     gs1() {
+        const questionAvailable = this.availableCatagories().length === 0;
+        if (!questionAvailable) gs.change({ state: "end game" });
         //get whoever is the current chooser
-        const { chooser } = { ...this.gameState };
+        const { chooser } = { ...gs };
         const script = `${chooser}, please tell me the catagory and value of the clue you want me to read.`;
-        this.read(script, this.gameUpdate, { state: "awaitingChoice" });
+        this.read(script, (x) => { gs.change(x); }, { state: "awaitingChoice" });
     }
     gs2(phrase) {
         //make array of optional chars
@@ -402,24 +369,25 @@ class host extends abstractPerson {
         let hasCatagory = false;
         let hasValue = false;
         let isAvailable = false;
-
+        const { catagories } = { ...gs.gameBoard };
+        const { prevCatagory } = { ...gs };
 
         if (chosenCatagory !== 'no match') hasCatagory = true;
         if (chosenVal) hasValue = true;
         if (hasCatagory && hasValue) {
-            isAvailable = this.availcat.get(chosenCatagory).isAvailable(chosenVal);
+            isAvailable = catagories.get(chosenCatagory).isAvailable(chosenVal);
         }
         if (!hasCatagory && hasValue) {
-            if (this.gameState.prevCatagory) {
-                if (this.availcat.get(this.gameState.prevCatagory).isAvailable(chosenVal)) {
-                    chosenCatagory = this.gameState.prevCatagory;
+            if (prevCatagory) {
+                if (catagories.get(prevCatagory).isAvailable(chosenVal)) {
+                    chosenCatagory = prevCatagory;
                     hasCatagory = true;
                     isAvailable = true;
                 }
             }
         }
         if (hasCatagory && !hasValue) {
-            this.gameState.prevCatagory = chosenCatagory;
+            prevCatagory = chosenCatagory;
         }
 
 
@@ -434,11 +402,13 @@ class host extends abstractPerson {
     }
 
     questionChosen(chosenCatagory, chosenVal) {
-        const theCat = this.availcat.get(chosenCatagory);
+        // gs.gameBoard.choose({ catagory: chosenCatagory, value: chosenVal });
+        const theCat = gs.gameBoard.catagories.get(chosenCatagory);
         const { prompt, answer } = { ...theCat.data.get(chosenVal) };
 
-        const script = `${this.gameState.chooser} has chosen ${chosenCatagory} for ${chosenVal}.`;
-        this.read(script, this.gameUpdate, {
+
+        const script = `${gs.chooser} has chosen ${chosenCatagory} for ${chosenVal}.`;
+        this.read(script, (x) => { gs.change(x); }, {
             state: 'question chosen',
             catagory: chosenCatagory,
             value: chosenVal,
@@ -448,17 +418,18 @@ class host extends abstractPerson {
     }
 
     gs3() {
-        this.gameUpdate({ state: 'reading' });
-        this.read(this.gameState.prompt, this.gameUpdate, { state: 'awaiting buzzer' });
+        gs.change({ state: 'reading' });
+        this.read(gs.prompt, (x) => { gs.change(x); }, { state: 'awaiting buzzer' });
     }
     gs4() {
         const alertSound = new Audio("./media/sounds/alert.wav");
         alertSound.play();
-        const activeCat = this.availcat.get(this.gameState.catagory);
-        activeCat.canBuzz(this.gameState.value, true);
+        gs.gameBoard.buzzable(true);
+        const activeCat = gs.gameBoard.catagories.get(gs.catagory);
         if (this.buzzerTimer.status === "Paused") {
             this.buzzerTimer.resume();
         } else {
+            this.buzzerTimer.reset();
             this.buzzerTimer.start();
         }
 
@@ -466,11 +437,13 @@ class host extends abstractPerson {
     gs4a() {
         const badNoAnswer = new Audio("./media/sounds/wrong.wav");
         badNoAnswer.play();
-        const script = `I am sorry the answer was ${this.gameState.answer}`;
-        this.read(script, this.gameUpdate,
+        gs.change({ state: "reading answer" });
+        const script = `I am sorry the answer was ${gs.answer}`;
+        gs.gameBoard.finishQuestion();
+        this.read(script, (x) => { gs.change(x); },
             {
                 state: 'top of the round',
-                prevCatagory: this.gameState.catagory,
+                prevCatagory: gs.catagory,
                 catagory: "",
                 value: "",
                 prompt: "",
@@ -494,7 +467,7 @@ class host extends abstractPerson {
         return false;
     }
     #hasAnswer(userInput) {
-        const answerReg = new RegExp(this.gameState.answer, "i");
+        const answerReg = new RegExp(gs.answer, "i");
         return answerReg.test(userInput);
     }
     gs5(attemptedAnswer) {
@@ -504,7 +477,7 @@ class host extends abstractPerson {
         const formOfQuestion = this.#hasQuestionWord(attemptedAnswer);
         const containsAnswer = this.#hasAnswer(attemptedAnswer);
         let script;
-        const { from, value } = { ...this.gameState };
+        const { from, value } = { ...gs };
         this.answerTimer.reset();
 
         if (!formOfQuestion) {
@@ -514,7 +487,7 @@ class host extends abstractPerson {
                 value: -value
             });
             badNoAnswer.play();
-            this.read(script, this.gameUpdate,
+            this.read(script, (x) => { gs.change(x); },
                 {
                     state: 'awaiting buzzer',
                 });
@@ -527,10 +500,11 @@ class host extends abstractPerson {
                 value: value
             });
             success.play();
-            this.read(script, this.gameUpdate,
+            gs.gameBoard.finishQuestion();
+            this.read(script, (x) => { gs.change(x); },
                 {
                     state: 'top of the round',
-                    prevCatagory: this.gameState.catagory,
+                    prevCatagory: gs.catagory,
                     chooser: from,
                     catagory: "",
                     value: "",
@@ -547,7 +521,7 @@ class host extends abstractPerson {
                 value: -value
             });
             badNoAnswer.play();
-            this.read(script, this.gameUpdate,
+            this.read(script, (x) => { gs.change(x); },
                 {
                     state: 'awaiting buzzer',
                 });
@@ -563,7 +537,6 @@ class contestant extends abstractPerson {
         this.properties.role = "Contestant";
         this.properties.score = 0;
         this.properties.player = this.whatPlayerAmI();
-        this.gameState = {};
         this.properties.onPenalty = false;
         this.resetPen = function () { this.properties.onPenalty = false; }
         this.penaltyTimer = new timer(this.resetPen, 250);
@@ -572,10 +545,12 @@ class contestant extends abstractPerson {
     build() {
         super.build();
         this.appendAsChildOf(this.myHook);
-        this.displayScore = this.elem.children[3];
+        this.displayScore = this.elem.children[1].children[0];
         this.displayScore.innerText = "$0";
+        this.podium = this.elem.children[1];
+        this.podium.src = "./media/images/Podium.png";
         if (this.properties.name) {
-            this.elem.children[2].innerText = this.properties.name;
+            this.elem.children[1].children[1].innerText = this.properties.name;
         }
         return this;
     }
@@ -583,7 +558,7 @@ class contestant extends abstractPerson {
     setName(name) {
         super.setName(name);
         if (this.elem) {
-            this.elem.children[2].innerText = name;
+            this.elem.children[1].children[1].innerText = name;
         }
         return this;
     }
@@ -650,7 +625,7 @@ class contestant extends abstractPerson {
             options: { classList: "contestant-image" },
         };
         const podium = {
-            tag: 'img',
+            tag: 'div',
             options: { classList: "contestant-podium" },
         };
         const displayName = {
@@ -669,8 +644,9 @@ class contestant extends abstractPerson {
         template
             .addChild(contestant)
             .addChild(podium)
-            .addChild(displayName)
-            .addChild(displayScore);
+        template.children[1]
+            .addChild(displayScore)
+            .addChild(displayName);
 
         // return the template
 
@@ -699,8 +675,8 @@ class humanPlayer extends contestant {
             eventType: 'click',
             eventTarget: globalThis.document,
             eventFunction: (event, type, target) => {
-                if (this.gameState.state === 'awaitingChoice'
-                    && this.gameState.chooser === this.properties.name) {
+                if (gs.state === 'awaitingChoice'
+                    && gs.chooser === this.properties.name) {
                     this.boardClickEvent(event, type, target);
                 }
             },
@@ -723,12 +699,12 @@ class humanPlayer extends contestant {
     gameStateUpdated(gameStateObj) {
         super.gameStateUpdated(gameStateObj);
         this.highlightBoard(false);
-        if (this.gameState.state === 'awaitingChoice' &&
-            this.gameState.chooser === this.properties.name) {
+        if (gs.state === 'awaitingChoice' &&
+            gs.chooser === this.properties.name) {
             this.highlightBoard(true);
         }
-        if (this.gameState.state === 'awaiting answer'
-            && this.gameState.from === this.properties.name) {
+        if (gs.state === 'awaiting answer'
+            && gs.from === this.properties.name) {
             chatInput.focus();
         }
     }
@@ -740,11 +716,11 @@ class humanPlayer extends contestant {
         }
     }
     buzzFunc() {
-        switch (this.gameState.state) {
-            case 'reading':
-                this.properties.onPenalty = true;
-                this.penaltyTimer.start();
-                break;
+        switch (gs.state) {
+            // case 'reading':
+            //     this.properties.onPenalty = true;
+            //     this.penaltyTimer.start();
+            //     break;
             case 'awaiting buzzer':
                 if (this.properties.onPenalty === false) {
                     const myBuzzer = new Audio("./media/sounds/Player_Buzz.mp3");
@@ -781,6 +757,11 @@ class computerPlayer extends contestant {
         super(parent);
         this.actionTimer = new timer(() => { this.tryBuzz(); });
         this.properties.attempted = false;
+        this.knowsAnswer = false;
+        this.thinksKnows = false;
+        this.dexBonus = '';
+        this.conBonus = '';
+        this.wisBonus = '';
     }
     setAttributes({ int, dex, wis, con }) {
         this.attributes = { int, dex, wis, con };
@@ -823,29 +804,31 @@ class computerPlayer extends contestant {
     }
 
     chooseQuestion() {
-        const ACArr = this.availableCatagories();
-        const catIdx = Math.floor(Math.random() * ACArr.length);
-        const cataChoice = ACArr[catIdx];
-        const AVArr = this.availValues(cataChoice);
-        const AVIdx = Math.floor(Math.random() * AVArr.length);
-        const valChoice = AVArr[AVIdx];
+        const me = this.properties.name;
+        const { chooser, state } = { ...gs };
+        if (state === 'awaitingChoice' && chooser === me) {
+            const retryTimer = new timer(() => { this.chooseQuestion(); }, 10000);
+            retryTimer.start();
 
-        const phrase = `I will take ${cataChoice} for ${valChoice} please.`;
-        this.utter(phrase);
+            const ACArr = this.availableCatagories();
+            const catIdx = Math.floor(Math.random() * ACArr.length);
+            const cataChoice = ACArr[catIdx];
+            const AVArr = this.availValues(cataChoice);
+            const AVIdx = Math.floor(Math.random() * AVArr.length);
+            const valChoice = AVArr[AVIdx];
+
+            const phrase = `I will take ${cataChoice} for ${valChoice} please.`;
+            this.utter(phrase);
+        }
     }
 
-    gameStateUpdated(gameStateObj) {
-        for (let key in gameStateObj) {
-            this.gameState[key] = gameStateObj[key];
-        }
-        const { state, chooser, from } = { ...this.gameState };
+    gameStateUpdated() {
+
+        const { state, chooser, from } = { ...gs };
         const me = this.properties.name;
         switch (state) {
-            case 'introductions':
-                this.intoduceSelf(this.properties);
-                break;
             case 'awaiting buzzer':
-                this.wisdomRoll();
+                this.attemptToBuzz();
                 break;
             case 'awaitingChoice':
                 if (chooser === me) {
@@ -853,134 +836,136 @@ class computerPlayer extends contestant {
                 }
                 break;
             case 'awaiting answer':
-                console.log("From", from);
-                console.log("Me", me);
                 this.actionTimer.reset();
-                if (from === me); {
-                    this.conRoll();
+                if (from === me) {
+                    this.attemptToAnswer();
                 }
                 break;
             case 'resume buzzin':
                 if (!this.properties.attempted) {
-                    this.wisdomRoll();
+                    this.attemptToBuzz();
                 }
                 break;
             case 'top of the round':
                 this.actionTimer.reset();
                 this.properties.attempted = false;
+                this.wisBonus = '';
+                this.dexBonus = '';
+                this.conBonus = '';
                 break;
             default:
 
         }
     }
-
-    wisdomRoll() {
-        const { wis } = { ...this.attributes };
-        this.thinksKnows = this.DCCheck(this.roll(wis), 10);
-        switch (this.thinksKnows.result) {
-            case 'Critical Fail':
-                //trys to buzz in, disadvantage on int roll
-                this.dexRoll();
+    attemptToAnswer() {
+        let conRoll;
+        switch (this.conBonus) {
+            case 'Advantage':
+                conRoll = this.rollWithAdvantage(this.attributes.con);
                 break;
+            case 'Disadvantage':
+                conRoll = this.rollWithDisadvantage(this.attributes.con);
+                break;
+            default:
+                conRoll = this.roll(this.attributes.con);
+        }
+        const conCheck = this.DCCheck(conRoll, 10);
+        if (conCheck.result === 'Success' || conCheck.result === 'Critical Success') {
+            if (this.knowsAnswer) {
+                this.utter(`what is ${gs.answer}.`);
+            }
+            else {
+                this.utter("forty-two?");
+            }
+        }
+    }
+    attemptToBuzz() {
+        const { wis, dex, int, con } = { ...this.attributes };
+        const intRoll = this.roll(int);
+        const intDCCheck = this.DCCheck(intRoll, 10);
+        switch (intDCCheck.result) {
             case 'Critical Success':
-                //trys to buzz in, advantage on int roll
-                this.dexRoll();
+                this.knowsAnswer = true;
+                this.wisBonus = "Advantage";
+                break;
+            case 'Critical Fail':
+                this.knowsAnswer = false;
+                this.wisBonus = "Disadvantage";
+                this.dexBonus = "Advantage";
                 break;
             case 'Success':
-                //trys to buzz in
-                this.dexRoll();
+                this.knowsAnswer = true;
                 break;
             case 'Fail':
-                //does not buzz in
+                this.knowsAnswer = false;
+                break;
+        }
+        let wisRoll;
+        switch (this.wisBonus) {
+            case 'Advantage':
+                wisRoll = this.rollWithAdvantage(wis);
+                break;
+            case 'Disadvantage':
+                wisRoll = this.rollWithDisadvantage(wis);
                 break;
             default:
+                wisRoll = this.roll(wis);
         }
-    }
-
-    intRoll() {
-        const { int } = { ...this.attributes };
-        let r;
-        switch (this.thinksKnows.result) {
+        const wisDCCheck = this.DCCheck(wisRoll, 10);
+        switch (wisDCCheck.result) {
+            case 'Critical Success':
+                this.thinksKnows = this.knowsAnswer;
+                this.conBonus = "Advantage";
+                break;
             case 'Critical Fail':
-                r = this.rollWithDisadvantage(int);
-                break;
-            case 'Critical Success':
-                r = this.rollWithAdvantage(int);
-                break;
-            default:
-                r = this.roll(int);
-                break;
-        }
-        this.knowsAnswer = this.DCCheck(r, 10);
-        let phrase;
-        switch (this.knowsAnswer.result) {
-            case 'Critical Success':
-                phrase = `what is ${this.gameState.answer}`;
+                this.thinksKnows = !this.knowsAnswer;
+                if (this.knowsAnswer) this.dexBonus = "Disadvantage";
+                if (!this.knowsAnswer) this.dexBonus = "Advantage";
                 break;
             case 'Success':
-                phrase = `what is ${this.gameState.answer}`;
-                break;
-            case 'Critical Fail':
-                phrase = "It's one of them bird-things, right?";
+                this.thinksKnows = this.knowsAnswer;
                 break;
             case 'Fail':
-                phrase = "It's one of them bird-things, right?";
+                this.thinksKnows = !this.knowsAnswer;
+                break;
+        }
+        let dexRoll = false;
+        switch (this.dexBonus) {
+            case 'Advantage':
+                dexRoll = this.rollWithAdvantage(dex);
+                break;
+            case 'Disadvantage':
+                dexRoll = this.rollWithDisadvantage(dex);
                 break;
             default:
+                dexRoll = this.roll(dex);
+                break;
         }
-        this.utter(phrase);
-
-    }
-
-    conRoll() {
-        const { con } = { ...this.attributes };
-        this.willAnswer = this.DCCheck(this.roll(con), 10);
-        let phrase;
-        switch (this.willAnswer.result) {
-            case 'Critical Success':
-                this.intRoll();
-                break;
-            case 'Success':
-                this.intRoll();
-                break;
-            case 'Critical Fail':
-                phrase = "Your mother is a hampster, and your father smelt of elderberries!";
-                this.utter(phrase);
-            case 'Fail':
-                phrase = "Your mother is a hampster, and your father smelt of elderberries!";
-                this.utter(phrase);
-                break;
-            default:
+        let delay = 0;
+        if (this.thinksKnows) {
+            const dexDCCheck = this.DCCheck(dexRoll, 10)
+            switch (dexDCCheck.result) {
+                case 'Critical Success':
+                    delay = 50
+                    break;
+                case 'Critical Fail':
+                    delay = 6000;
+                    break;
+                case 'Success':
+                    delay = 400 - (dexRoll.total * 10) + Math.floor(Math.random() * 20);
+                    break;
+                case 'Fail':
+                    delay = 2500;
+                    break;
+            }
+            this.actionTimer.delay = delay;
+            this.actionTimer.start();
         }
 
-
-    }
-
-    dexRoll() {
-        const { dex } = { ...this.attributes };
-        this.buzzerClick = this.DCCheck(this.roll(dex), 10);
-        const sv = Math.floor(Math.random() * 50);
-        const mod = (10 - this.buzzerClick.total);
-        const res = this.buzzerClick.result;
-
-        if (res === 'Critical Fail') {
-            this.actionTimer.delay = 4500;
-        } else if (res === 'Critical Success') {
-            this.actionTimer.delay = 50;
-        } else if (res === 'Fail') {
-            this.actionTimer.delay = 2500;
-        } else if (res === 'Success') {
-            this.actionTimer.delay = 400 - (10 * mod);
-        }
-        this.actionTimer.delay += sv;
-
-        console.log(this.properties.name, "dex roll", this.buzzerClick);
-        console.log("Delay", this.actionTimer.delay);
-        this.actionTimer.start();
     }
 
     tryBuzz() {
-        if (this.gameState.state === 'awaiting buzzer') {
+        if (gs.state === 'awaiting buzzer') {
             const myBuzzer = new Audio("./media/sounds/other_Buzz.wav");
             myBuzzer.play();
             this.buzzIn({ who: this.properties.name });

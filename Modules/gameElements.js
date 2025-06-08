@@ -54,6 +54,77 @@ class gameState {
         globalThis.dispatchEvent(e);
     }
 }
+class startPage extends abstractElemCollection {
+    constructor() {
+        super();
+    }
+
+
+    eventConstructor() {
+        const sub = {
+            eventType: 'submit',
+            eventTarget: startForm,
+            eventFunction: function (event, type, target) {
+                event.preventDefault();
+            },
+        };
+
+        // pass your event handler object to add event
+
+        this.addEvent(sub);
+    }
+
+    actionConstructor() {
+
+    }
+
+    constructorTemplate() {
+
+        const window = {
+            tag: 'div',
+            options: { id: 'startWindow', }
+        };
+        const title = {
+            tag: 'h1',
+            options: {
+                id: 'startWindowTitle',
+                innerText: 'Welcome to Jeopardy!',
+            }
+        };
+        const directions = {
+            tag: 'p',
+            options: {
+                id: 'startWindowDirections',
+                innerText: 'Please input your name below.',
+            }
+        };
+        const startForm = {
+            tag: 'form',
+            options: { id: 'startForm', }
+        };
+        const nameInput = {
+            tag: 'input',
+            options: { id: 'startNameInput', }
+        };
+        const playBtn = {
+            tag: 'button',
+            options: {
+                id: 'startSubmit',
+                innerText: 'Play',
+            }
+        };
+        const template = new tree(window);
+        template
+            .addChild(title)
+            .addChild(directions)
+            .addChild(startForm);
+        template.children[2] //startForm
+            .addChild(nameInput)
+            .addChild(playBtn);
+        return template;
+    }
+
+}
 class gameArea extends abstractElemCollection {
     constructor() {
         super();
@@ -78,8 +149,15 @@ class gameArea extends abstractElemCollection {
         this.build()
             .appendAsChildOf(document.querySelector('body'))
             .resize();
-        const g = new game(this.elem);
-        g.build();
+
+        const start = new startPage();
+        start.build(this.elem);
+        startForm.addEventListener('submit', () => {
+            gs.playerName = startNameInput.value;
+            this.elem.children[0].remove();
+            const g = new game(this.elem);
+            g.build();
+        }, false);
     }
 
     eventConstructor() {
@@ -501,15 +579,6 @@ class catagory {
 
         }
     }
-    canBuzz(questionValue, bool) {
-        const q = this.data.get(questionValue);
-        if (bool) {
-            q.questionBack.classList.add("buzzin");
-        }
-        else {
-            q.questionBack.classList.remove("buzzin");
-        }
-    }
 
     isAvailable(value) {
         const state = this.questionState.get(Number.parseInt(value));
@@ -559,21 +628,18 @@ class board extends abstractElemCollection {
             },
         };
         const gameUpdate = {
-            eventType: 'updateGameState',
-            eventTarget: globalThis.document,
+            eventType: 'gameUpdate',
+            eventTarget: globalThis,
             eventFunction: (event, type, target) => {
-                const { state, ...rest } = { ...event.detail };
+                const { state, gameStart, catagory, value } = { ...gs };
                 switch (state) {
                     case 'top of the round':
-                        const { gameStart } = { ...rest };
                         if (!gameStart) {
                             this.finishQuestion();
                         }
                         break;
-                    case 'question chosen':
-                        const { catagory, value } = { ...rest };
+                    case 'reading':
                         this.choose({ catagory, value });
-
                         break;
                     default:
                 }
@@ -706,6 +772,16 @@ class board extends abstractElemCollection {
         this.#workingVal = value;
         this.#workingCat.setState({ value: this.#workingVal, state: "Active" });
     }
+    buzzable(bool) {
+        const activeQuestion = this.#workingCat.data.get(this.#workingVal);
+        if (bool) {
+            activeQuestion.questionBack.classList.add("buzzin");
+        }
+        else {
+            activeQuestion.questionBack.classList.remove("buzzin");
+        }
+
+    }
 
     isAvailable({ catagory, value }) {
         const workingCat = this.catagories.get(catagory);
@@ -714,6 +790,7 @@ class board extends abstractElemCollection {
 
     finishQuestion() {
         this.#workingCat.setState({ value: this.#workingVal, state: "Attempted" });
+
     }
 
 }
@@ -748,29 +825,36 @@ class game extends abstractElemCollection {
     }
 
     finishBuild() {
+        const people = new Map();
         const gameChat = new chat().build();
         //     const gameHost = new host(hostHook);
         const orderChooser = ["Player 1", "Player 2", "Player 3"];
         const getHook = this.playerChooser(orderChooser);
-        const human = new humanPlayer(/*getHook*/contestantOneHook);
-        human.setName("Keaton")
+        const human = new humanPlayer(getHook);
+        human.setName(gs.playerName)
             .build()
             .setPictureSource("");
-        // const bot1Hook = this.playerChooser(orderChooser);
-        // const bot1 = new computerPlayer(bot1Hook);
-        // bot1.setName("Mr. Roboto")
-        //     .build()
-        //     .setPictureSource("")
-        //     .setAttributes({ dex: 10, int: 10, wis: 10, con: 10 });
-        // const bot2Hook = this.playerChooser(orderChooser);
-        // const bot2 = new computerPlayer(bot2Hook);
-        // bot2.setName("Calculon")
-        //     .build()
-        //     .setPictureSource("")
-        //     .setAttributes({ dex: 10, int: 10, wis: 10, con: 10 });
+        const bot1Hook = this.playerChooser(orderChooser);
+        const bot1 = new computerPlayer(bot1Hook);
+        bot1.setName("Mr. Roboto")
+            .build()
+            .setPictureSource("")
+            .setAttributes({ dex: 14, int: 16, wis: 14, con: 14 });
+        const bot2Hook = this.playerChooser(orderChooser);
+        const bot2 = new computerPlayer(bot2Hook);
+        bot2.setName("Calculon")
+            .build()
+            .setPictureSource("")
+            .setAttributes({ dex: 8, int: 18, wis: 14, con: 12 });
         const gameHost = new host().build();
 
-        gs.change({ gameChat, human, gameHost, gameBoard: this.gb });
+        // people.set(gameHost.name, gameHost.properties);
+        people.set(gameHost.properties.name, gameHost.properties);
+        people.set(human.properties.name, human.properties);
+        people.set(bot1.properties.name, bot1.properties);
+        people.set(bot2.properties.name, bot2.properties);
+        gs.change({ gameChat, human, gameHost, gameBoard: this.gb, people });
+
         this.boardReady();
     }
 
