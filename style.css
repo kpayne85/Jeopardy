@@ -238,6 +238,7 @@ h2.title-text {
   width: 100%;
   display: flex;
   flex-direction: row;
+  background-color: black;
 }
 
 #gameLower {
@@ -495,9 +496,51 @@ h2.title-text {
 #hostRoot {
   width: 100%;
   height: 100%;
+  text-align: center;
 }
 
 #displayPic {
-
   height: 100%;
+
+}
+
+.contestant-background {
+  border: 1px solid black;
+}
+
+.contestant-image {
+  position: fixed;
+}
+
+.contestant-podium {
+  background-image: url("./media/images/Podium.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 33%;
+  width: 33%;
+  position: absolute;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.contestant-name {
+  width: 12vw;
+  height: 10vh;
+  text-align: center;
+  z-index: 1;
+  align-self: center;
+  font-size: 1.8vw;
+}
+
+.contestant-score {
+  font-size: 1.3vw;
+  width: 12vw;
+  height: 19vh;
+  text-align: center;
+  padding-top: 15vh;
+  z-index: 1;
+  align-self: center;
+
 }
